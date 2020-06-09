@@ -2,10 +2,15 @@
 % Please edit documentation in R/blblm.R
 \name{blbcoef}
 \alias{blbcoef}
-\title{compute the coefficients from fit}
+\title{bag of little boostraps coefficient value
+compute the coefficients from fit}
 \usage{
 blbcoef(fit)
 }
+\arguments{
+\item{fit}{fitted values, use to get residuals/coefficients}
+}
 \description{
+bag of little boostraps coefficient value
 compute the coefficients from fit
 }
