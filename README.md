@@ -1,3 +1,7 @@
+# Eric Gip STA 141C Final Project
+
+Mostly explained everything in the vignette
+
 # blblm
 
 <!-- badges: start -->
