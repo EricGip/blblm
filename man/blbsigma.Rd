@@ -2,10 +2,15 @@
 % Please edit documentation in R/blblm.R
 \name{blbsigma}
 \alias{blbsigma}
-\title{compute sigma from fit}
+\title{Sigma value computed from bag of litte bootstraps
+ompute sigma from fit}
 \usage{
 blbsigma(fit)
 }
+\arguments{
+\item{fit}{fitted values, use to get residuals/coefficients}
+}
 \description{
-compute sigma from fit
+Sigma value computed from bag of litte bootstraps
+ompute sigma from fit
 }

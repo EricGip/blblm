@@ -1,0 +1,41 @@
+---
+title: "Bag of Little Bootstraps Linear Regression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{blblm-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+## Example
+`load_all()`  
+`blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)`  
+
+
+## Bag of little bootstraps (BLB) is a procedure to efficiently compute quality of estimators. 
+   * BLB = subsample + bootstrap. 
+      * Sample without replacement the sample `s` times into sizes of `b`
+      * For each subsample
+        * computer the bootstrap statistics (mean of variable, or correlation between two vars) for each bootstrap sample
+        * compute the statistic (e.g. confidence interval) from bootstrap statistics
+      * take average of each upper and lower point for the confidence interval. 
+    
+
+# My contributions
+
+There were a variety of bugs in the check() function, for starters I've added documentation to most of the functions, binded the global variable, and removed uneccessary files that were stopping the package from running properly. After that, I was able to add more than one CPU used in the algorithm by adding the furr library, adding `future_map` and adding some tests. The original plan for the test of the main function, blblm, is to show the calculations of our implementation vs the calculations of the built-in lm() function. We can see that they are not equivalent, they shouldn't be because the lm() function only runs once while our blblm() function runs the model multiple times; we take the average of each bootstrap run and are able to come to a more accurate number than the standard built-in functions. Unfortunately, there isn't a `expect_notEqual` function in the testthat library so I am just making sure the output of coefficients are equal and able to be manipulated together. I had to spend a few hours making sure that our coefficient outputs were in the proper format instead of comparing a list to a double, a numeric to a data frame, etc. 
+
+You can test this out manually by `blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)` and comparing to `lm(mpg ~ wt * hp, data = mtcars)`.
+
+# References
+
+Confidence with Bag of Little Bootstraps - Garnatz, Hardin 
+http://pages.pomona.edu/~jsh04747/Student%20Theses/ChrisGarnatz15.pdf

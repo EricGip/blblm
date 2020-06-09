@@ -2,12 +2,10 @@
 % Please edit documentation in R/blblm.R
 \docType{package}
 \name{blblm-package}
-\alias{blblm}
-\alias{blblm-package}
-\title{blblm: What the Package Does (Title Case)}
+\title{blblm: Linear Regression with Little Bag of Bootstraps}
 \description{
-More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Linear Regression with Bag of Little Bootstraps, returns a coefficient estimator or confidence interval. 
+    Bag of little bootstraps = subsample + bootstrap to yield a robust, computationally efficient means of assesing the quality of estimators.
 }
 \details{
 Linear Regression with Little Bag of Bootstraps

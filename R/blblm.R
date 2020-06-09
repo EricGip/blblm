@@ -1,6 +1,9 @@
 #' @import purrr
 #' @import stats
 #' @importFrom magrittr %>%
+#' @import furrr
+#' @import utils
+#' @aliases NULL
 #' @details
 #' Linear Regression with Little Bag of Bootstraps
 "_PACKAGE"
@@ -8,42 +11,78 @@
 
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 # from https://github.com/jennybc/googlesheets/blob/master/R/googlesheets.R
-utils::globalVariables(c("."))
+utils::globalVariables(c("fit"))
 
-
+#' Linear Regression with Bag of Little Bootstraps
+#' @param formula The linear regression model you want
+#' @param data The data you want to perform blblm on
+#' @param m = number of observations
+#' @param B = times to perform boostrap on the data, more times = more accurate; but will take longer.
+#' @param parallel set to ` = TRUE` if you want to activate speed up blb if your system can handle it.
+#'
+#'
+#' @references https://link.springer.com/chapter/10.1007/978-3-030-01418-6_53
 #' @export
-blblm <- function(formula, data, m = 10, B = 5000) {
+
+blblm <- function(formula, data, m = 10, B = 5000, parallel = FALSE) {
+
   data_list <- split_data(data, m)
-  estimates <- map(
+
+  estimates <- future_map(
     data_list,
+
     ~ lm_each_subsample(formula = formula, data = ., n = nrow(data), B = B))
+
   res <- list(estimates = estimates, formula = formula)
   class(res) <- "blblm"
+
   invisible(res)
 }
 
 
-#' split data into m parts of approximated equal sizes
+#' Split data
+#' @description split data into m parts of approximated equal sizes
+#'
+#' @param data Data you want to split
+#' @param m number of observations
+#'
 split_data <- function(data, m) {
   idx <- sample.int(m, nrow(data), replace = TRUE)
   data %>% split(idx)
 }
 
 
-#' compute the estimates
+#' Linear regression on each sub sample
+#' compute the estimates for each subsample
+#'
+#' @param formula linear regression model you want
+#' @param data dataset you want to perform formula on
+#' @param n number of observations
+#' @param B times to run bootstrap
+#'
 lm_each_subsample <- function(formula, data, n, B) {
   replicate(B, lm_each_boot(formula, data, n), simplify = FALSE)
 }
 
 
+#' Linear Regression on each bootstrap
 #' compute the regression estimates for a blb dataset
+#'
+#' @param formula model that was specified
+#' @param data dataset to perform lm on
+#' @param n number of observations
 lm_each_boot <- function(formula, data, n) {
   freqs <- rmultinom(1, n, rep(1, nrow(data)))
   lm1(formula, data, freqs)
 }
 
 
+#' linear regression estimate
 #' estimate the regression estimates based on given the number of repetitions
+#'
+#' @param data dataset to perform linear regression on
+#' @param formula linear regression formula to perform
+#' @param freqs number of repetitions, used in calcuationg regression estimates.
 lm1 <- function(formula, data, freqs) {
   # drop the original closure of formula,
   # otherwise the formula will pick a wront variable from the global scope.
@@ -52,14 +91,34 @@ lm1 <- function(formula, data, freqs) {
   list(coef = blbcoef(fit), sigma = blbsigma(fit))
 }
 
+# cpp
+# fastLmPure <- function(X, y) {
+#   stopifnot(is.matrix(X), is.numeric(y), nrow(y) == nrow(X))
+# }
+#
+#
+# fastLm <- function(X, ...) UseMethod("fastLm") {
+#   X <- as.matrix(X)
+#   y <- as.numeric(y)
+#
+#   res <-
+# }
 
+#
+
+#' bag of little boostraps coefficient value
 #' compute the coefficients from fit
+#'
+#' @param fit fitted values, use to get residuals/coefficients
 blbcoef <- function(fit) {
   coef(fit)
 }
 
 
-#' compute sigma from fit
+#' Sigma value computed from bag of litte bootstraps
+#' ompute sigma from fit
+#'
+#' @param fit fitted values, use to get residuals/coefficients
 blbsigma <- function(fit) {
   p <- fit$rank
   y <- model.extract(fit$model, "response")
@@ -69,6 +128,11 @@ blbsigma <- function(fit) {
 }
 
 
+#' Used to return coefficient estimates of our blb linear regression.
+#'
+#' @param x number of observations
+#' @param ... any other argument you might want to pass through here.
+#'
 #' @export
 #' @method print blblm
 print.blblm <- function(x, ...) {
@@ -77,6 +141,13 @@ print.blblm <- function(x, ...) {
 }
 
 
+#' Sigma value estimate from blblm
+#'
+#' @param object the object we want to estimate
+#' @param confidence set to true for confidence intervals, set to just estimate by default.
+#' @param level level of significance
+#' @param ... any other argument you want to pass
+#'
 #' @export
 #' @method sigma blblm
 sigma.blblm <- function(object, confidence = FALSE, level = 0.95, ...) {
@@ -150,3 +221,4 @@ map_cbind <- function(.x, .f, ...) {
 map_rbind <- function(.x, .f, ...) {
   map(.x, .f, ...) %>% reduce(rbind)
 }
+
