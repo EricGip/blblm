@@ -44,7 +44,7 @@ blblm <- function(formula, data, m = 10, B = 5000, parallel = FALSE) {
 #' @description split data into m parts of approximated equal sizes
 #'
 #' @param data Data you want to split
-#' @param m number of observations
+#' @param m numbers of observations
 #'
 split_data <- function(data, m) {
   idx <- sample.int(m, nrow(data), replace = TRUE)
@@ -130,7 +130,7 @@ blbsigma <- function(fit) {
 
 #' Used to return coefficient estimates of our blb linear regression.
 #'
-#' @param x number of observations
+#' @param x blblm model formula
 #' @param ... any other argument you might want to pass through here.
 #'
 #' @export
@@ -143,7 +143,7 @@ print.blblm <- function(x, ...) {
 
 #' Sigma value estimate from blblm
 #'
-#' @param object the object we want to estimate
+#' @param object the object/model we want to estimate
 #' @param confidence set to true for confidence intervals, set to just estimate by default.
 #' @param level level of significance
 #' @param ... any other argument you want to pass
@@ -172,6 +172,12 @@ coef.blblm <- function(object, ...) {
 }
 
 
+#' Confidence interval of our blblm
+#'
+#' @param object object / model that we want to test
+#' @param parm Parameters of regression variables we want to see. this is set to null by default and will use all variables. Set variables by using c("variable1", "variable2")
+#' @param level Confidence level we want to test
+#' @param ... Any other argument you might want to pass.
 #' @export
 #' @method confint blblm
 confint.blblm <- function(object, parm = NULL, level = 0.95, ...) {
@@ -190,6 +196,15 @@ confint.blblm <- function(object, parm = NULL, level = 0.95, ...) {
   out
 }
 
+#' Model predictions on our blblm
+#'
+#' @param object object / model we want to test
+#' @param new_data New data that we want to test our regression on
+#' @param confidence Set to `TRUE` if you want a confidence
+#' interval prediction.
+#' @param level Confidence level we want to investigate
+#' @param ... Accepts any other argument you might want to pass.
+#' @references http://www.sthda.com/english/articles/40-regression-analysis/166-predict-in-r-model-predictions-and-confidence-intervals/
 #' @export
 #' @method predict blblm
 predict.blblm <- function(object, new_data, confidence = FALSE, level = 0.95, ...) {
@@ -211,14 +226,14 @@ mean_lwr_upr <- function(x, level = 0.95) {
 }
 
 map_mean <- function(.x, .f, ...) {
-  (map(.x, .f, ...) %>% reduce(`+`)) / length(.x)
+  (future_map(.x, .f, ...) %>% reduce(`+`)) / length(.x)
 }
 
 map_cbind <- function(.x, .f, ...) {
-  map(.x, .f, ...) %>% reduce(cbind)
+  future_map(.x, .f, ...) %>% reduce(cbind)
 }
 
 map_rbind <- function(.x, .f, ...) {
-  map(.x, .f, ...) %>% reduce(rbind)
+  future_map(.x, .f, ...) %>% reduce(rbind)
 }
 

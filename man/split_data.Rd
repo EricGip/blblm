@@ -9,7 +9,7 @@ split_data(data, m)
 \arguments{
 \item{data}{Data you want to split}
 
-\item{m}{number of observations}
+\item{m}{numbers of observations}
 }
 \description{
 split data into m parts of approximated equal sizes
