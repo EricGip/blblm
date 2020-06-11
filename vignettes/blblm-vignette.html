@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Bag of Little Bootstraps Linear Regression</title>
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Bag of Little Bootstraps Linear Regression</h1>
+
+
+
+<div id="eric-gip-141c-final" class="section level1">
+<h1>Eric Gip 141C Final</h1>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<p><code>library(devtools)</code> <code>load_all()</code> <code>blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)</code> Alternatively, you can run the code in the <code>README.md</code></p>
+</div>
+<div id="bag-of-little-bootstraps-blb-is-a-procedure-to-efficiently-compute-quality-of-estimators." class="section level2">
+<h2>Bag of little bootstraps (BLB) is a procedure to efficiently compute quality of estimators.</h2>
+<ul>
+<li>BLB = subsample + bootstrap.
+<ul>
+<li>Sample without replacement the sample <code>s</code> times into sizes of <code>b</code></li>
+<li>For each subsample
+<ul>
+<li>computer the bootstrap statistics (mean of variable, or correlation between two vars) for each bootstrap sample</li>
+<li>compute the statistic (e.g. confidence interval) from bootstrap statistics</li>
+</ul></li>
+<li>take average of each upper and lower point for the confidence interval.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="my-contributions" class="section level1">
+<h1>My contributions</h1>
+<p>There were a variety of bugs in the check() function, for starters I’ve added documentation to most of the functions, binded the global variable, and removed uneccessary files that were stopping the package from running properly. After that, I was able to add more than one CPU used in the algorithm by adding the furr library, adding <code>future_map</code> and adding some tests. The original plan for the test of the main function, blblm, is to show the calculations of our implementation vs the calculations of the built-in lm() function. We can see that they are not equivalent, they shouldn’t be because the lm() function only runs once while our blblm() function runs the model multiple times; we take the average of each bootstrap run and are able to come to a more accurate number than the standard built-in functions. Unfortunately, there isn’t a <code>expect_notEqual</code> function in the testthat library so I am just making sure the output of coefficients are equal and able to be manipulated together. From my understanding from office hours with Professor Lai, we’re able to apply <code>furr::future_map</code> anywhere <code>map</code> would be used and they would be activated if parallelization was used. I had to spend a few hours making sure that our coefficient outputs were in the proper format instead of comparing a list to a double, a numeric to a data frame, etc.</p>
+<p>You can test this out manually by <code>blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)</code> and comparing to <code>lm(mpg ~ wt * hp, data = mtcars)</code>.</p>
+</div>
+<div id="functions-in-this-package" class="section level1">
+<h1>Functions in this package</h1>
+<p>This paragraph will cover the main function involved ‘R/blblm.R’ directory.</p>
+<div id="blblm-blblm-functiondata-m" class="section level2">
+<h2>blblm | <code>?blblm</code> | function(data, m)</h2>
+<p>This is the bag of little bootstrap linear regression function.<br />
+First it calls our <code>split_data()</code> function to split the data by the number of observations <code>m</code> that we set. If parallel = TRUE, then we are able to apply parallelization onto the map function, applying our other function <code>lm_each_sample</code> onto the array and creating a new list called <code>res</code> that holds the blblm estimates. <code>Invisible(res)</code> returns a temporarily invisible copy of an object and just hides the printing of value assignment of <code>res</code>. With bootstrap, we are obtaining distinct datasets by repeatedly sampling observations from the original dataset with replacement to get a more well rounded estimate of the dataset compared to a single sample that the built in <code>lm()</code> function would be.</p>
+</div>
+<div id="split_data-split_data-functionformula-data-n-b" class="section level2">
+<h2>split_data | <code>?split_data</code> | function(formula, data, n, B)</h2>
+<p>This function allows us to split the dataset based on the number of observations that we’ve set. In our example, we set <code>m = 3</code> in meaning that we want 3 distinct datasets from sampling with replacement from the original dataset. Splitting the data gives us a better idea of the dataset as we’re able to get a better view of the dataset. In the off chanace that we obtain multiple outliers in the <code>lm()</code> function, our <code>blblm()</code>is going to produce more accurate results.</p>
+</div>
+<div id="lm_each_subsample-lm_each_subsample-functionformula-data-n-b" class="section level2">
+<h2>lm_each_subsample | <code>?lm_each_subsample</code> | function(formula, data, n, B)</h2>
+<p>Performs linear regression on each subsample. The replicate() function replicates the values we input and applies it onto each subsample. The function is a one-liner as such: <code>replicate(B, lm_each_boot(formula, data, n), simplify = FALSE)</code>. It replicates the number of times we want bootstrap to run and the function to apply on each distinct datase.</p>
+</div>
+<div id="lm_each_boot-lm_each_boot-functionformula-data-n" class="section level2">
+<h2>lm_each_boot | <code>?lm_each_boot</code> | function(formula, data, n)</h2>
+<p>This function creates a variable, <code>freqs</code> by applying <code>rmultinom()</code>, generating a multinomially distributed random number vectors and multinomial probabilities. We then use <code>freqs</code> for another function we created, <code>lm1</code>.</p>
+</div>
+<div id="lm1-lm1-functionformuladatafreqs" class="section level2">
+<h2>lm1 | <code>?lm1</code> | function(formula,data,freqs)</h2>
+<p>lm1 is the core of this package, the linear regression function. it takes in the formula, data, and uses <code>freqs</code> as weights with the built in <code>lm()</code> function. It then creats a list containing the values of our <code>blbcoef</code> and <code>blbsigma</code> functions that we created and applied onto the calculations of the base <code>lm()</code> function.</p>
+</div>
+<div id="blbcoef-blbcoef-functionfit" class="section level2">
+<h2>blbcoef | <code>?blbcoef</code> | function(fit)</h2>
+<p>This function retrieves the coefficients of the <code>fit</code> variable we assigned in the <code>lm1()</code> function. Again, <code>fit</code> is just the model from the built in <code>lm()</code> function with our arguments applied to them. This function just applies the <code>coef()</code> onto <code>fit</code>. We use this to retrieve to retrieve the coefficients of our model to be further manipulted.</p>
+</div>
+<div id="blbsigma-blbsigma-fuctionfit" class="section level2">
+<h2>blbsigma | <code>?blbsigma</code> | fuction(fit)</h2>
+<p>blbsigma takes in the fitted values calculated in <code>lm1</code>, and creates a number of different variables. <code>p</code> for the ranks of the fitted values, <code>y</code> to extract the response, <code>e</code> uses the <code>fitted()</code> function to extract fitted values of fit - response, then <code>w</code> for weights of the fit model. We use all these variables to find the variance of the fit with the equation <code>sqrt(sum(w * (e ^ 2)) / sum(w) - p)</code>.</p>
+</div>
+<div id="print.blblm-print.blblm-functionx" class="section level2">
+<h2>print.blblm | ?print.blblm | function(x, …)</h2>
+<p>this function console.logs the formula of our blblm model.</p>
+</div>
+<div id="sigma.blblm-sigma.blblm-functionobject-confidence-level" class="section level2">
+<h2>sigma.blblm | ?sigma.blblm | function(object, confidence, level, …)</h2>
+<p>We’re able to obtain the overall sigma value estimate of our blblm estimation with this function. We assign <code>est</code> to the model’s estimates, then we create a new overall <code>sigma</code> by taking the average of applying a function to each element of our list with <code>mean(map_dbl())</code> of our previous sigma estimates. If a confidence level was specified, calculate alpha for the significance level and set a new var <code>limits</code> equal to the left and the right tail of our sigma estimations. If no confidence level is stated, just returns the <code>sigma</code> we created with <code>mean(map_dbl())</code>. You should also be aware that the <strong>confidence level set to 0.95</strong> by default.</p>
+</div>
+<div id="confint.blblm-confint.blblm-functionobject-parm-level" class="section level2">
+<h2>confint.blblm | ?confint.blblm | function(object, parm, level, …)</h2>
+<p>Confint computes confidence intervals in a fitted model, this is our inhouse interval creator on our blblm. The arguments are standard as the rest of the documentation, but the interesting one is <code>parm</code>. This allows us to only use variables we care about as regressors. For example, entering only <code>mpg</code> as the formula would use all the available columns as regressors while <code>mpg ~ wt * hp</code> would set the params to <code>c(&quot;wt&quot;, &quot;hp&quot;)</code>. Combining this all together to create a matrix that contains the confidence intervals in two squares.</p>
+</div>
+<div id="predict.blblm-predict.blblm-functionobject-new_data-confidence-level" class="section level2">
+<h2>predict.blblm | ?predict.blblm | function(object, new_data, confidence, level)</h2>
+<p>Main goal of linear regression is to predict an outcome for new observations. We first generate a matrix, <code>x</code>, and set it equal to the new data that we want to test. Confidence is set to false by default, returning a single integer. If confidence = <code>TRUE</code>, it generates a confidence interval of the prediction. We then apply our <code>map_mean</code> function to the matrix and retreive the mean of all our estimates, generating our prediction.</p>
+</div>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<p>Confidence with Bag of Little Bootstraps - Garnatz, Hardin <a href="http://pages.pomona.edu/~jsh04747/Student%20Theses/ChrisGarnatz15.pdf" class="uri">http://pages.pomona.edu/~jsh04747/Student%20Theses/ChrisGarnatz15.pdf</a></p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
