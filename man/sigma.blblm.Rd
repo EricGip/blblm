@@ -7,7 +7,7 @@
 \method{sigma}{blblm}(object, confidence = FALSE, level = 0.95, ...)
 }
 \arguments{
-\item{object}{the object we want to estimate}
+\item{object}{the object/model we want to estimate}
 
 \item{confidence}{set to true for confidence intervals, set to just estimate by default.}
 

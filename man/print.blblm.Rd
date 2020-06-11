@@ -7,7 +7,7 @@
 \method{print}{blblm}(x, ...)
 }
 \arguments{
-\item{x}{number of observations}
+\item{x}{blblm model formula}
 
 \item{...}{any other argument you might want to pass through here.}
 }

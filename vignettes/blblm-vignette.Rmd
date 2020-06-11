@@ -16,9 +16,10 @@ knitr::opts_chunk$set(
 # Eric Gip 141C Final
 
 ## Example
-`load_all()`  
-`blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)`  
-
+`library(devtools)`
+`load_all()`
+`blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)`
+Alternatively, you can run the code in the `README.md`
 
 ## Bag of little bootstraps (BLB) is a procedure to efficiently compute quality of estimators. 
    * BLB = subsample + bootstrap. 
@@ -31,9 +32,47 @@ knitr::opts_chunk$set(
 
 # My contributions
 
-There were a variety of bugs in the check() function, for starters I've added documentation to most of the functions, binded the global variable, and removed uneccessary files that were stopping the package from running properly. After that, I was able to add more than one CPU used in the algorithm by adding the furr library, adding `future_map` and adding some tests. The original plan for the test of the main function, blblm, is to show the calculations of our implementation vs the calculations of the built-in lm() function. We can see that they are not equivalent, they shouldn't be because the lm() function only runs once while our blblm() function runs the model multiple times; we take the average of each bootstrap run and are able to come to a more accurate number than the standard built-in functions. Unfortunately, there isn't a `expect_notEqual` function in the testthat library so I am just making sure the output of coefficients are equal and able to be manipulated together. I had to spend a few hours making sure that our coefficient outputs were in the proper format instead of comparing a list to a double, a numeric to a data frame, etc. 
+There were a variety of bugs in the check() function, for starters I've added documentation to most of the functions, binded the global variable, and removed uneccessary files that were stopping the package from running properly. After that, I was able to add more than one CPU used in the algorithm by adding the furr library, adding `future_map` and adding some tests. The original plan for the test of the main function, blblm, is to show the calculations of our implementation vs the calculations of the built-in lm() function. We can see that they are not equivalent, they shouldn't be because the lm() function only runs once while our blblm() function runs the model multiple times; we take the average of each bootstrap run and are able to come to a more accurate number than the standard built-in functions. Unfortunately, there isn't a `expect_notEqual` function in the testthat library so I am just making sure the output of coefficients are equal and able to be manipulated together. From my understanding from office hours with Professor Lai, we're able to apply `furr::future_map` anywhere `map` would be used and they would be activated if parallelization was used. I had to spend a few hours making sure that our coefficient outputs were in the proper format instead of comparing a list to a double, a numeric to a data frame, etc. 
 
 You can test this out manually by `blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100, parallel = TRUE)` and comparing to `lm(mpg ~ wt * hp, data = mtcars)`. 
+
+# Functions in this package
+
+This paragraph will cover the main function involved 'R/blblm.R' directory.
+
+## blblm | `?blblm` | function(data, m)
+This is the bag of little bootstrap linear regression function.   
+First it calls our `split_data()` function to split the data by the number of observations `m` that we set. If parallel = TRUE, then we are able to apply parallelization onto the map function, applying our other function `lm_each_sample` onto the array and creating a new list called `res` that holds the blblm estimates.   `Invisible(res)` returns a temporarily invisible copy of an object and just hides the printing of value assignment of `res`. With bootstrap, we are obtaining distinct datasets by repeatedly sampling observations from the original dataset with replacement to get a more well rounded estimate of the dataset compared to a single sample that the built in `lm()` function would be.
+
+## split_data | `?split_data` | function(formula, data, n, B)
+This function allows us to split the dataset based on the number of observations that we've set. In our example, we set `m = 3` in meaning that we want 3 distinct datasets from sampling with replacement from the original dataset. Splitting the data gives us a better idea of the dataset as we're able to get a better view of the dataset. In the off chanace that we obtain multiple outliers in the `lm()` function, our `blblm()`is going to produce more accurate results. 
+
+## lm_each_subsample | `?lm_each_subsample` | function(formula, data, n, B)
+Performs linear regression on each subsample. The replicate() function replicates the values we input and applies it onto each subsample. The function is a one-liner as such: `replicate(B, lm_each_boot(formula, data, n), simplify = FALSE)`. It replicates the number of times we want bootstrap to run and the function to apply on each distinct datase. 
+
+## lm_each_boot | `?lm_each_boot` | function(formula, data, n)
+This function creates a variable, `freqs` by applying `rmultinom()`, generating a multinomially distributed random number vectors and multinomial probabilities. We then use `freqs` for another function we created, `lm1`. 
+
+## lm1 | `?lm1` | function(formula,data,freqs)
+lm1 is the core of this package, the linear regression function. it takes in the formula, data, and uses `freqs` as weights with the built in `lm()` function. It then creats a list containing the values of our `blbcoef` and `blbsigma` functions that we created and applied onto the calculations of the base `lm()` function. 
+
+## blbcoef | `?blbcoef` | function(fit)
+This function retrieves the coefficients of the `fit` variable we assigned in the `lm1()` function. Again, `fit` is just the model from the built in `lm()` function with our arguments applied to them. This function just applies the `coef()` onto `fit`. We use this to retrieve to retrieve the coefficients of our model to be further manipulted. 
+
+## blbsigma | `?blbsigma` | fuction(fit)
+blbsigma takes in the fitted values calculated in `lm1`, and creates a number of different variables. `p` for the ranks of the fitted values, `y` to extract the response, `e` uses the `fitted()` function to extract fitted values of fit - response, then `w` for weights of the fit model. We use all these variables to find the variance of the fit with the equation `sqrt(sum(w * (e ^ 2)) / sum(w) - p)`.
+
+## print.blblm | ?print.blblm | function(x, ...)
+this function console.logs the formula of our blblm model. 
+
+## sigma.blblm | ?sigma.blblm | function(object, confidence, level, ...)
+We're able to obtain the overall sigma value estimate of our blblm estimation with this function. We assign `est` to the model's estimates, then we create a new overall `sigma` by taking the average of applying a function to each element of our list with `mean(map_dbl())` of our previous sigma estimates. If a confidence level was specified, calculate alpha for the significance level and set a new var `limits` equal to the left and the right tail of our sigma estimations. If no confidence level is stated, just returns the `sigma` we created with `mean(map_dbl())`. You should also be aware that the **confidence level set to 0.95** by default.
+
+## confint.blblm | ?confint.blblm | function(object, parm, level, ...)
+Confint computes confidence intervals in a fitted model, this is our inhouse interval creator on our blblm. The arguments are standard as the rest of the documentation, but the interesting one is `parm`. This allows us to only use variables we care about as regressors. For example, entering only `mpg` as the formula would use all the available columns as regressors while `mpg ~ wt * hp` would set the params to `c("wt", "hp")`. Combining this all together to create a matrix that contains the confidence intervals in two squares.
+
+## predict.blblm | ?predict.blblm | function(object, new_data, confidence, level)
+Main goal of linear regression is to predict an outcome for new observations. We first generate a matrix, `x`, and set it equal to the new data that we want to test. Confidence is set to false by default, returning a single integer. If confidence = `TRUE`, it generates a confidence interval of the prediction. We then apply our `map_mean` function to the matrix and retreive the mean of all our estimates, generating our prediction. 
 
 # References
 
